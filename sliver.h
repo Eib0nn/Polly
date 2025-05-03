@@ -52,6 +52,52 @@ typedef _Function_class_(USER_THREAD_START_ROUTINE)
 
 typedef USER_THREAD_START_ROUTINE *PUSER_THREAD_START_ROUTINE;
 
+typedef struct _LDR_DATA_TABLE_ENTRY
+{
+    LIST_ENTRY InLoadOrderLinks;
+    LIST_ENTRY InMemoryOrderLinks;
+    LIST_ENTRY InInitializationOrderLinks;
+    PVOID DllBase;
+    PVOID EntryPoint;
+    ULONG SizeOfImage;
+    UNICODE_STRING FullDllName;
+    UNICODE_STRING BaseDllName;
+    ULONG Flags;
+    USHORT LoadCount;
+    USHORT TlsIndex;
+    LIST_ENTRY HashLinks;
+    PVOID SectionPointer;
+    ULONG CheckSum;
+    ULONG TimeDateStamp;
+    PVOID LoadedImports;
+    PVOID EntryPointActivationContext;
+    PVOID PatchInformation;
+} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
+
+typedef struct _PEB_LDR_DATA
+{
+    ULONG Length;
+    BOOLEAN Initialized;
+    HANDLE SsHandle;
+    LIST_ENTRY InLoadOrderModuleList;
+    LIST_ENTRY InMemoryOrderModuleList;
+    LIST_ENTRY InInitializationOrderModuleList;
+    PVOID EntryInProgress;
+    BOOLEAN ShutdownInProgress;
+    HANDLE ShutdownThreadId;
+} PEB_LDR_DATA, *PPEB_LDR_DATA;
+
+typedef struct _PEB
+{
+    BOOLEAN InheritedAddressSpace;
+    BOOLEAN ReadImageFileExecOptions;
+    BOOLEAN BeingDebugged;
+    BOOLEAN SpareBool;
+    HANDLE Mutant;
+    PVOID ImageBaseAddress;
+    PPEB_LDR_DATA Ldr;
+} PEB, *PPEB;
+
 //------------------------ Native function structures ------------------------
 
 typedef NTSTATUS (NTAPI* NtCreateSection)(
@@ -87,3 +133,7 @@ typedef NTSTATUS (NTAPI* RtlCreateUserThread)(
     _Out_opt_ PHANDLE ThreadHandle,
     _Out_opt_ PCLIENT_ID ClientId
     );
+
+typedef HMODULE(WINAPI *LOADLIBRARYA)(LPCSTR);
+
+typedef FARPROC(WINAPI *GETPROCADDRESS)(HMODULE, LPCSTR);
