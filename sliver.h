@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L)

