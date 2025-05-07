@@ -1,2 +1,5 @@
 littletest.c
 *.exe
+*.bin
+*.py
+*.txt
