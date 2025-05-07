@@ -162,7 +162,6 @@ int main(int argc, char*argv[]){
     }
     printf("[+] Got the address of RtlCreateUserThread from NTDLL: 0x%p\n", thRtlCreateUserThread);
 
-    // testing shellcode, need to move to injection
     buffer = (char *)VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (buffer == NULL)
     {
